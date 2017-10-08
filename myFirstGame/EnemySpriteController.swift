@@ -61,6 +61,14 @@ class EnemySpriteController{
             bullet.position = CGPoint(x: enemy.position.x, y: enemy.position.y)
             targetSprite.parent?.addChild(bullet)
             
+            // Add physics body for collision detection
+            bullet.physicsBody = SKPhysicsBody(rectangleOf: bullet.frame.size)
+            bullet.physicsBody?.isDynamic = true
+            bullet.physicsBody?.affectedByGravity = false
+            bullet.physicsBody?.categoryBitMask = collisionBulletCategory
+            bullet.physicsBody?.contactTestBitMask = collisionHeroCategory
+            bullet.physicsBody?.collisionBitMask = 0x0
+            
             // Determine vector to targetSprite
             let vector = CGVector(dx: targetSprite.position.x-enemy.position.x, dy: targetSprite.position.y-enemy.position.y)
             

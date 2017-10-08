@@ -9,7 +9,10 @@
 import SpriteKit
 import GameplayKit
 
-class GameScene: SKScene {
+let collisionBulletCategory: UInt32 = 0x1 << 0
+let collisionHeroCategory: UInt32 = 0x1 << 1
+
+class GameScene: SKScene, SKPhysicsContactDelegate {
     
     private var label : SKLabelNode?
     private var spinnyNode : SKShapeNode?
@@ -23,6 +26,7 @@ class GameScene: SKScene {
     var remainingLives = 3
     var scoreNode = SKLabelNode()
     var score = 0
+    var gamePaused = false
     
     func createHUD(){
         // Create a root node with black background to position and group the HUD elements
@@ -67,6 +71,15 @@ class GameScene: SKScene {
         
     }
     
+    func showPauseAlert(){
+        self.gamePaused = true
+        var alert = UIAlertController(title: "Pause", message: "", preferredStyle: UIAlertControllerStyle.alert)
+        alert.addAction(UIAlertAction(title: "Continue", style: UIAlertActionStyle.default)  { _ in
+            self.gamePaused = false
+        })
+        self.view?.window?.rootViewController?.present(alert, animated: true, completion: nil)
+    }
+    
     override func didMove(to view: SKView) {
         self.backgroundColor = UIColor.black
         // Place the created hero sprite in the middle of the screen
@@ -89,6 +102,23 @@ class GameScene: SKScene {
         // Add HUD to the screen
         createHUD()
         
+        self.physicsWorld.contactDelegate = self
+        
+        // Add physics body for collision detection
+        heroSprite.physicsBody?.isDynamic = true
+        heroSprite.physicsBody = SKPhysicsBody(texture: heroSprite.texture!, size: heroSprite.size)
+        heroSprite.physicsBody?.affectedByGravity = false
+        heroSprite.physicsBody?.categoryBitMask = collisionHeroCategory
+        heroSprite.physicsBody?.contactTestBitMask = collisionBulletCategory
+        heroSprite.physicsBody?.collisionBitMask = 0x0
+        
+        
+    }
+    
+    func didBegin(_ contact: SKPhysicsContact) {
+        if !self.gamePaused{
+            
+        }
     }
     
     
@@ -139,6 +169,15 @@ class GameScene: SKScene {
             invisibleControllerSprite.run(actionMoveInvisibleNode)
             
         }
+        for touch: AnyObject in touches{
+            var location = touch.location(in: self)
+            var node = self.atPoint(location)
+            if(node.name == "PauseButton") || (node.name == "PauseButtonContainer"){
+                showPauseAlert()
+            }else{
+                // Do nothing
+            }
+        }
     }
     
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -153,8 +192,19 @@ class GameScene: SKScene {
         for t in touches { self.touchUp(atPoint: t.location(in: self)) }
     }
     
-    
+    var _dLastShootTime: CFTimeInterval = 1
     override func update(_ currentTime: TimeInterval) {
         // Called before each frame is rendered
+        if !self.gamePaused{
+            if currentTime - _dLastShootTime >= 1{
+                enemySprites.shoot(targetSprite: heroSprite)
+                _dLastShootTime = currentTime
+                
+                // Increase scores
+                self.score += self.score
+                self.scoreNode.text = String(score)
+            }
+        }
+        
     }
 }
