@@ -15,35 +15,44 @@ class GameViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        if let view = self.view as! SKView? {
-            // Load the SKScene from 'GameScene.sks'
-            if let scene = SKScene(fileNamed: "GameScene") {
-                // Set the scale mode to scale to fit the window
-                scene.scaleMode = .aspectFill
-                
-                // Present the scene
-                view.presentScene(scene)
-            }
-            
-            view.ignoresSiblingOrder = true
-            
-            view.showsFPS = true
-            view.showsNodeCount = true
-        }
+        
+        
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        
+        // Detect the screen size
+        var sizeRect = UIScreen.main.bounds
+        // var sizeRect = UIScreen.mainScreen.applicationFrame
+        var width = sizeRect.size.width * UIScreen.main.scale
+        var height = sizeRect.size.height * UIScreen.main.scale
+        
+        // Screen should be shown in fullscreen mode
+        
+        let scene = GameScene(size: CGSize(width: width, height: height))
+        //let scene = GameScene(size: CGSizeMake(width, height))
+        // Configure the view
+        let skView = self.view as! SKView
+        skView.showsFPS = true
+        skView.showsNodeCount = true
+        
+        // SpriteKit applies additional optimizations to improve rendering performance
+        skView.ignoresSiblingOrder = true
+        // Set the scale mode to fit the window
+        scene.scaleMode = .aspectFill
+        skView.presentScene(scene)
     }
 
     override var shouldAutorotate: Bool {
         return true
     }
-
-    override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
-        if UIDevice.current.userInterfaceIdiom == .phone {
-            return .allButUpsideDown
-        } else {
-            return .all
-        }
+    
+    override var supportedInterfaceOrientations:UIInterfaceOrientationMask {
+        return UIInterfaceOrientationMask.landscapeLeft
     }
 
+    
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Release any cached data, images, etc that aren't in use.
